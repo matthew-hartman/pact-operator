@@ -1,0 +1,31 @@
+# permissions for end users to edit pacticipants.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: pacticipant-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: pactio-op
+    app.kubernetes.io/part-of: pactio-op
+    app.kubernetes.io/managed-by: kustomize
+  name: pacticipant-editor-role
+rules:
+- apiGroups:
+  - pact.code.arista.io
+  resources:
+  - pacticipants
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - pact.code.arista.io
+  resources:
+  - pacticipants/status
+  verbs:
+  - get

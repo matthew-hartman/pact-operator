@@ -1,0 +1,27 @@
+# permissions for end users to view pacticipants.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: pacticipant-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: pactio-op
+    app.kubernetes.io/part-of: pactio-op
+    app.kubernetes.io/managed-by: kustomize
+  name: pacticipant-viewer-role
+rules:
+- apiGroups:
+  - pact.code.arista.io
+  resources:
+  - pacticipants
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - pact.code.arista.io
+  resources:
+  - pacticipants/status
+  verbs:
+  - get

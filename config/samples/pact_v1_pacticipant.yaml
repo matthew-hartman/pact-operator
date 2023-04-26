@@ -1,0 +1,12 @@
+apiVersion: pact.code.arista.io/v1
+kind: Pacticipant
+metadata:
+  labels:
+    app.kubernetes.io/name: pacticipant
+    app.kubernetes.io/instance: pacticipant-sample
+    app.kubernetes.io/part-of: pactio-op
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: pactio-op
+  name: pacticipant-sample
+spec:
+  # TODO(user): Add fields here
