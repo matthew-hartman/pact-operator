@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"os"
+	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -33,6 +34,7 @@ import (
 
 	pactv1 "github.com/aristanetworks/pact-operator/api/v1"
 	"github.com/aristanetworks/pact-operator/controllers"
+	req "github.com/imroc/req/v3"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -52,8 +54,10 @@ func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
+	var brokerURL string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flag.StringVar(&brokerURL, "broker-url", "https://pact-broker.cloud-dev.corp.arista.io", "The URL of the Pact Broker")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -89,9 +93,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	client := req.C().
+		SetTimeout(5 * time.Second)
+
 	if err = (&controllers.PacticipantReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:       mgr.GetClient(),
+		Scheme:       mgr.GetScheme(),
+		BrokerURL:    brokerURL,
+		BrokerClient: client,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pacticipant")
 		os.Exit(1)

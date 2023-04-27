@@ -17,8 +17,19 @@ limitations under the License.
 package v1
 
 import (
+	"fmt"
+	"hash/fnv"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
+
+type PactTag string
+
+type Contract struct {
+	Name string  `json:"name"`
+	Tag  PactTag `json:"tag,omitempty"`
+}
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
@@ -28,14 +39,96 @@ type PacticipantSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Pacticipant. Edit pacticipant_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Name    string `json:"name,omitempty"`
+	Version string `json:"version,omitempty"`
+
+	Tags      []PactTag  `json:"tags,omitempty"`
+	Contracts []Contract `json:"contracts,omitempty"`
+}
+
+func hash(s fmt.Stringer) string {
+	h := fnv.New32a()
+	h.Write([]byte(s.String()))
+	return fmt.Sprintf("%x", h.Sum32())
+}
+
+func (p *PacticipantSpec) Hash() string {
+	return hash(p)
+}
+
+func (p *PacticipantSpec) String() string {
+	ret := fmt.Sprintf("%s:%s", p.Name, p.Version)
+	for _, t := range p.Tags {
+		ret += fmt.Sprintf(":%s", t)
+	}
+	for _, c := range p.Contracts {
+		ret += fmt.Sprintf(":%s", c)
+	}
+	return ret
+}
+
+func (c *Contract) Hash() string {
+	return hash(c)
+}
+
+func (c *Contract) String() string {
+	return fmt.Sprintf("%s:%s", c.Name, c.Tag)
 }
 
 // PacticipantStatus defines the observed state of Pacticipant
 type PacticipantStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// Represents time when the job controller started processing contracts.
+	// It is represented in RFC3339 form and is in UTC.
+	StartTime *metav1.Time `json:"startTime,omitempty"`
+
+	// The total number of contracts
+	Total int32 `json:"total,omitempty"`
+
+	// The number of pending and running checks.
+	Active int32 `json:"active,omitempty"`
+
+	// The number of contracts that have passed can-i-deploy checks.
+	Succeeded int32 `json:"succeeded,omitempty"`
+
+	// The number of contracts that have failed can-i-deploy checks.
+	Failed int32 `json:"failed,omitempty"`
+
+	// Store refs to the jobs that are created for each contract
+	Jobs []ContractJobRef `json:"jobs,omitempty"`
+
+	// Conditions represent the latest available observations of an object's state
+	Conditions []metav1.Condition `json:"conditions"`
+}
+
+func (p *PacticipantStatus) IsComplete() bool {
+	for _, c := range p.Conditions {
+		if c.Status == metav1.ConditionTrue && c.Type == "Complete" {
+			return true
+		}
+	}
+	return false
+}
+
+type ContractJobRef struct {
+	Namespace string `json:"namespace,omitempty"`
+	Name      string `json:"name,omitempty"`
+}
+
+func NewContractJobRef(name, space string) ContractJobRef {
+	return ContractJobRef{
+		Name:      name,
+		Namespace: space,
+	}
+}
+
+func (n *ContractJobRef) NamespacedName() types.NamespacedName {
+	return types.NamespacedName{
+		Namespace: n.Namespace,
+		Name:      n.Name,
+	}
 }
 
 //+kubebuilder:object:root=true

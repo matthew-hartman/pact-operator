@@ -7,6 +7,15 @@ metadata:
     app.kubernetes.io/part-of: pactio-op
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: pactio-op
-  name: pacticipant-sample
+  name: mut-manager-pact-contract
+  namespace: default
 spec:
-  # TODO(user): Add fields here
+  name: mut-manager
+  version: 0a691299c10b9644bad29f8962a11a49e63242d7
+  tags:
+  - "deployed-infra"
+  contracts:
+  - name: "tpg-service"
+    tag: "deployed-infra"
+  - name: "project-info"
+    tag: "deployed-infra"
