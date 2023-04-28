@@ -1,0 +1,6 @@
+
+name: pactio-op
+
+image:
+  repository: docker.corp.arista.io/pact-operator
+  tag: ""
